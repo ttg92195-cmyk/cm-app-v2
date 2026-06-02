@@ -50,7 +50,7 @@ jobs:
 
       # 5. Generate Android project with Expo Prebuild
       - name: Expo Prebuild
-        run: npx expo prebuild --platform android --clean --verbose
+        run: npx expo prebuild --platform android --clean
 
       # 6. Debug - List generated files
       - name: List Android Files
