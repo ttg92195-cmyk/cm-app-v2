@@ -20,61 +20,68 @@ on:
 
 jobs:
   build-apk:
-    name: 📱 Build Android APK
+    name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      # 1. Checkout code from repository
-      - name: 📥 Checkout Code
+      # 1. Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       # 2. Setup Node.js
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       # 3. Setup Java JDK (required for Android build)
-      - name: ☕ Setup Java JDK
+      - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
       # 4. Install npm dependencies
-      - name: 📦 Install Dependencies
-        run: npm install
+      - name: Install Dependencies
+        run: |
+          npm install
+          npx expo --version
 
       # 5. Generate Android project with Expo Prebuild
-      - name: 🔧 Expo Prebuild (Generate Android Project)
-        run: npx expo prebuild --platform android --clean
+      - name: Expo Prebuild
+        run: npx expo prebuild --platform android --clean --verbose
 
-      # 6. Make Gradle wrapper executable
-      - name: 🔨 Setup Gradle
+      # 6. Debug - List generated files
+      - name: List Android Files
+        run: ls -la android/ || echo "Android folder not found"
+
+      # 7. Make Gradle wrapper executable
+      - name: Setup Gradle
         working-directory: android
         run: chmod +x ./gradlew
 
-      # 7. Build Debug APK (no signing required)
-      - name: 📱 Build Debug APK
+      # 8. Build Debug APK
+      - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --warning-mode all
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 8. Upload APK as artifact (downloadable from GitHub)
-      - name: 📤 Upload APK Artifact
+      # 9. Upload APK as artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MovieStream-Debug-APK
+          name: MovieStream-APK
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
-      # 9. Print APK info
-      - name: 📋 APK Info
+      # 10. Print APK info
+      - name: APK Info
+        if: success()
         run: |
-          echo "================================"
-          echo "🎬 MovieStream App - Build Info"
-          echo "================================"
+          echo "=============================="
+          echo "MovieStream App - Build Ready!"
+          echo "=============================="
           ls -lh android/app/build/outputs/apk/debug/*.apk
-          echo "================================"
-          echo "✅ APK is ready for download!"
-          echo "Go to Actions → Build Android APK → Artifacts"
-          echo "================================"
+          echo "=============================="
+          echo "Download from: Actions > Build Android APK > Artifacts"
+          echo "=============================="
